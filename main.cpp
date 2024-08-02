@@ -14,6 +14,7 @@ private:
     system_clock::time_point entryTime;
     int token;
     system_clock::time_point exitTime;
+    bool hasExited;
 
 public:
     static int tokenNum;
@@ -31,9 +32,17 @@ public:
     }
     void exitCar()
     {
-        exitTime = system_clock::now();
-        time_t exitTimeT = system_clock::to_time_t(exitTime);
-        cout << "Car with " << licensePlate << " exited at " << ctime(&exitTimeT) << endl;
+        if (!hasExited)
+        {
+            exitTime = system_clock::now();
+            time_t exitTimeT = system_clock::to_time_t(exitTime);
+            cout << "Car with " << licensePlate << " exited at " << ctime(&exitTimeT) << endl;
+            hasExited = true;
+        }
+        else
+        {
+            cout << "Car with " << licensePlate << "has already exited." << endl;
+        }
     }
 };
 
@@ -60,7 +69,7 @@ public:
     }
     void removeCar()
     {
-        if (availableSpots > totalSpots)
+        if (availableSpots < totalSpots)
         {
             availableSpots++;
         }
@@ -113,11 +122,17 @@ int main()
             string licensePlate;
             cout << "Enter the car's license plate: ";
             getline(cin, licensePlate);
-            Car enteredCar(licensePlate);
-            CarsEntered[licensePlate] = enteredCar;
-            parkingLot1.parkCar();
 
-            cout << "Car added." << endl;
+            if (parkingLot1.parkCar())
+            {
+                Car enteredCar(licensePlate);
+                CarsEntered[licensePlate] = enteredCar;
+                cout << "Car added." << endl;
+            }
+            else
+            {
+                cout << "No spot is available." << endl;
+            }
             break;
         }
         case 2:
