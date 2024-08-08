@@ -23,7 +23,7 @@ public:
     void displayDetails() const
     {
         time_t entryTimeT = system_clock::to_time_t(entryTime);
-        cout << "License Plate: " << licensePlate << endl;
+        cout << "License Plate: " << this->licensePlate << endl;
         cout << "Entry Time: " << ctime(&entryTimeT);
     }
     void enterCar()
@@ -32,16 +32,16 @@ public:
     }
     void exitCar()
     {
-        if (!hasExited)
+        if (!this->hasExited)
         {
-            exitTime = system_clock::now();
-            time_t exitTimeT = system_clock::to_time_t(exitTime);
-            cout << "Car with " << licensePlate << " exited at " << ctime(&exitTimeT) << endl;
-            hasExited = true;
+            this->exitTime = system_clock::now();
+            time_t exitTimeT = system_clock::to_time_t(this->exitTime);
+            cout << "Car with " << this->licensePlate << " exited at " << ctime(&exitTimeT) << endl;
+            this->hasExited = true;
         }
         else
         {
-            cout << "Car with " << licensePlate << "has already exited." << endl;
+            cout << "Car with " << this->licensePlate << "has already exited." << endl;
         }
     }
 };
