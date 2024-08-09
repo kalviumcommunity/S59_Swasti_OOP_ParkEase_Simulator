@@ -3,6 +3,7 @@
 #include <ctime>
 #include <map>
 #include <string>
+#include <vector>
 
 using namespace std;
 using namespace std::chrono;
@@ -18,18 +19,16 @@ private:
 
 public:
     static int tokenNum;
-    Car() : licensePlate(""), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()) {};
-    Car(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()) {};
+    Car() : licensePlate(""), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {};
+    Car(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {};
+
     void displayDetails() const
     {
         time_t entryTimeT = system_clock::to_time_t(entryTime);
         cout << "License Plate: " << this->licensePlate << endl;
         cout << "Entry Time: " << ctime(&entryTimeT);
     }
-    void enterCar()
-    {
-        cout << "Car entered" << endl;
-    }
+
     void exitCar()
     {
         if (!this->hasExited)
@@ -41,67 +40,132 @@ public:
         }
         else
         {
-            cout << "Car with " << this->licensePlate << "has already exited." << endl;
+            cout << "Car with " << this->licensePlate << " has already exited." << endl;
         }
     }
+
+    string getLicensePlate() const { return licensePlate; }
+    bool isExited() const { return hasExited; }
+};
+
+class ParkingSpot
+{
+private:
+    bool isAvailable;
+    Car *assignedCar;
+    int spotNumber;
+
+public:
+    ParkingSpot(int number) : isAvailable(true), assignedCar(nullptr), spotNumber(number) {}
+
+    bool assignCar(Car &car)
+    {
+        if (isAvailable)
+        {
+            isAvailable = false;
+            assignedCar = &car;
+            return true;
+        }
+        return false;
+    }
+
+    bool removeCar()
+    {
+        if (!isAvailable)
+        {
+            isAvailable = true;
+            assignedCar = nullptr;
+            return true;
+        }
+        return false;
+    }
+
+    bool getAvailability() const { return isAvailable; }
+    int getSpotNumber() const { return spotNumber; }
+    Car *getAssignedCar() const { return assignedCar; }
 };
 
 class ParkingLot
 {
 private:
-    int availableSpots;
-    int totalSpots;
+    vector<ParkingSpot> spots;
 
 public:
-    ParkingLot(int totalSpots) : availableSpots(totalSpots), totalSpots(totalSpots) {};
-    bool parkCar()
+    ParkingLot(int totalSpots)
     {
-        if (availableSpots > 0)
+        for (int i = 0; i < totalSpots; ++i)
         {
-            availableSpots--;
-            return true;
-        }
-        else
-        {
-            cout << "No spots are available." << endl;
-            return false;
+            spots.push_back(ParkingSpot(i + 1));
         }
     }
-    void removeCar()
+
+    bool parkCar(Car &car)
     {
-        if (availableSpots < totalSpots)
+        for (auto &spot : spots)
         {
-            availableSpots++;
+            if (spot.getAvailability())
+            {
+                if (spot.assignCar(car))
+                {
+                    cout << "Car parked at spot: " << spot.getSpotNumber() << endl;
+                    return true;
+                }
+            }
         }
+        cout << "No spots are available." << endl;
+        return false;
     }
-    void displayAvailableSpots()
+
+    void removeCar(const string &licensePlate)
     {
+        for (auto &spot : spots)
+        {
+            if (!spot.getAvailability() && spot.getAssignedCar()->getLicensePlate() == licensePlate)
+            {
+                spot.getAssignedCar()->exitCar();
+                spot.removeCar();
+                cout << "Car removed from spot: " << spot.getSpotNumber() << endl;
+                return;
+            }
+        }
+        cout << "Car with license plate " << licensePlate << " not found." << endl;
+    }
+
+    void displayAvailableSpots() const
+    {
+        int availableSpots = 0;
+        for (const auto &spot : spots)
+        {
+            if (spot.getAvailability())
+            {
+                availableSpots++;
+            }
+        }
         cout << "Total Available Spots: " << availableSpots << endl;
     }
+
+    void displayAllCars() const
+    {
+        cout << "Currently parked cars:" << endl;
+        for (const auto &spot : spots)
+        {
+            if (!spot.getAvailability())
+            {
+                spot.getAssignedCar()->displayDetails();
+                cout << "Assigned to spot: " << spot.getSpotNumber() << endl;
+                cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+            }
+        }
+    }
 };
+
 int Car::tokenNum = 0;
-map<string, Car> CarsEntered;
-
-void displayAllCars()
-{
-    if (CarsEntered.empty())
-    {
-        cout << "No cars entered yet." << endl;
-        return;
-    }
-
-    cout << "Entered cars till now:" << endl;
-    for (const auto &pair : CarsEntered)
-    {
-        pair.second.displayDetails();
-        cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-    }
-}
 
 int main()
 {
     ParkingLot parkingLot1(30);
     bool running = true;
+
     while (running)
     {
         cout << "1. Add a new car" << endl;
@@ -123,42 +187,26 @@ int main()
             cout << "Enter the car's license plate: ";
             getline(cin, licensePlate);
 
-            if (parkingLot1.parkCar())
+            Car enteredCar(licensePlate);
+            if (parkingLot1.parkCar(enteredCar))
             {
-                Car enteredCar(licensePlate);
-                CarsEntered[licensePlate] = enteredCar;
                 cout << "Car added." << endl;
-            }
-            else
-            {
-                cout << "No spot is available." << endl;
             }
             break;
         }
         case 2:
-            displayAllCars();
+            parkingLot1.displayAllCars();
             break;
         case 3:
-        {
             parkingLot1.displayAvailableSpots();
             break;
-        }
         case 4:
         {
             string licensePl;
             cout << "Enter the Car License Plate number: ";
             getline(cin, licensePl);
 
-            if (CarsEntered.find(licensePl) != CarsEntered.end())
-            {
-                CarsEntered[licensePl].exitCar();
-                CarsEntered.erase(licensePl);
-                parkingLot1.removeCar();
-            }
-            else
-            {
-                cout << "Car not found" << endl;
-            }
+            parkingLot1.removeCar(licensePl);
             break;
         }
         case 5:
