@@ -58,12 +58,12 @@ private:
 public:
     ParkingSpot(int number) : isAvailable(true), assignedCar(nullptr), spotNumber(number) {}
 
-    bool assignCar(Car &car)
+    bool assignCar(Car *car)
     {
         if (isAvailable)
         {
             isAvailable = false;
-            assignedCar = &car;
+            assignedCar = car;
             return true;
         }
         return false;
@@ -74,6 +74,7 @@ public:
         if (!isAvailable)
         {
             isAvailable = true;
+            delete assignedCar;
             assignedCar = nullptr;
             return true;
         }
@@ -88,31 +89,32 @@ public:
 class ParkingLot
 {
 private:
-    vector<ParkingSpot> spots;
+    vector<ParkingSpot *> spots;
 
 public:
     ParkingLot(int totalSpots)
     {
         for (int i = 0; i < totalSpots; ++i)
         {
-            spots.push_back(ParkingSpot(i + 1));
+            spots.push_back(new ParkingSpot(i + 1));
         }
     }
 
-    bool parkCar(Car &car)
+    bool parkCar(Car *car)
     {
         for (auto &spot : spots)
         {
-            if (spot.getAvailability())
+            if (spot->getAvailability())
             {
-                if (spot.assignCar(car))
+                if (spot->assignCar(car))
                 {
-                    cout << "Car parked at spot: " << spot.getSpotNumber() << endl;
+                    cout << "Car parked at spot: " << spot->getSpotNumber() << endl;
                     return true;
                 }
             }
         }
         cout << "No spots are available." << endl;
+        delete car;
         return false;
     }
 
@@ -120,11 +122,11 @@ public:
     {
         for (auto &spot : spots)
         {
-            if (!spot.getAvailability() && spot.getAssignedCar()->getLicensePlate() == licensePlate)
+            if (!spot->getAvailability() && spot->getAssignedCar()->getLicensePlate() == licensePlate)
             {
-                spot.getAssignedCar()->exitCar();
-                spot.removeCar();
-                cout << "Car removed from spot: " << spot.getSpotNumber() << endl;
+                spot->getAssignedCar()->exitCar();
+                spot->removeCar();
+                cout << "Car removed from spot: " << spot->getSpotNumber() << endl;
                 return;
             }
         }
@@ -136,7 +138,7 @@ public:
         int availableSpots = 0;
         for (const auto &spot : spots)
         {
-            if (spot.getAvailability())
+            if (spot->getAvailability())
             {
                 availableSpots++;
             }
@@ -147,14 +149,20 @@ public:
     void displayAllCars() const
     {
         cout << "Currently parked cars:" << endl;
+        bool isParked = false;
         for (const auto &spot : spots)
         {
-            if (!spot.getAvailability())
+            if (!spot->getAvailability())
             {
-                spot.getAssignedCar()->displayDetails();
-                cout << "Assigned to spot: " << spot.getSpotNumber() << endl;
+                spot->getAssignedCar()->displayDetails();
+                cout << "Assigned to spot: " << spot->getSpotNumber() << endl;
                 cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+                isParked = true;
             }
+        }
+        if (!isParked)
+        {
+            cout << "No cars are parked." << endl;
         }
     }
 };
@@ -187,7 +195,7 @@ int main()
             cout << "Enter the car's license plate: ";
             getline(cin, licensePlate);
 
-            Car enteredCar(licensePlate);
+            Car *enteredCar = new Car(licensePlate);
             if (parkingLot1.parkCar(enteredCar))
             {
                 cout << "Car added." << endl;
