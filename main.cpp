@@ -58,12 +58,12 @@ private:
 public:
     ParkingSpot(int number) : isAvailable(true), assignedCar(nullptr), spotNumber(number) {}
 
-    bool assignCar(Car &car)
+    bool assignCar(Car *car)
     {
         if (isAvailable)
         {
             isAvailable = false;
-            assignedCar = &car;
+            assignedCar = car;
             return true;
         }
         return false;
@@ -74,6 +74,7 @@ public:
         if (!isAvailable)
         {
             isAvailable = true;
+            delete assignedCar;
             assignedCar = nullptr;
             return true;
         }
@@ -99,7 +100,7 @@ public:
         }
     }
 
-    bool parkCar(Car &car)
+    bool parkCar(Car *car)
     {
         for (auto &spot : spots)
         {
@@ -113,6 +114,7 @@ public:
             }
         }
         cout << "No spots are available." << endl;
+        delete car;
         return false;
     }
 
@@ -147,6 +149,7 @@ public:
     void displayAllCars() const
     {
         cout << "Currently parked cars:" << endl;
+        bool isParked=false;
         for (const auto &spot : spots)
         {
             if (!spot.getAvailability())
@@ -154,7 +157,11 @@ public:
                 spot.getAssignedCar()->displayDetails();
                 cout << "Assigned to spot: " << spot.getSpotNumber() << endl;
                 cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+                isParked=true;
             }
+        }
+        if(!isParked){
+            cout<<"No cars are parked."<<endl;
         }
     }
 };
@@ -187,7 +194,7 @@ int main()
             cout << "Enter the car's license plate: ";
             getline(cin, licensePlate);
 
-            Car enteredCar(licensePlate);
+            Car *enteredCar = new Car(licensePlate);
             if (parkingLot1.parkCar(enteredCar))
             {
                 cout << "Car added." << endl;
