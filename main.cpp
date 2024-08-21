@@ -16,17 +16,23 @@ private:
     int token;
     system_clock::time_point exitTime;
     bool hasExited;
+    static int tokenNum;
 
 public:
-    static int tokenNum;
     Car() : licensePlate(""), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {};
     Car(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {};
+
+    int getTokenNum()
+    {
+        return token;
+    }
 
     void displayDetails() const
     {
         time_t entryTimeT = system_clock::to_time_t(entryTime);
         cout << "License Plate: " << this->licensePlate << endl;
         cout << "Entry Time: " << ctime(&entryTimeT);
+        cout << "Token Number: " << this->token << endl;
     }
 
     void exitCar()
@@ -90,6 +96,7 @@ class ParkingLot
 {
 private:
     vector<ParkingSpot *> spots;
+    static int totalCarAssigned;
 
 public:
     ParkingLot(int totalSpots)
@@ -108,6 +115,7 @@ public:
             {
                 if (spot->assignCar(car))
                 {
+                    totalCarAssigned++;
                     cout << "Car parked at spot: " << spot->getSpotNumber() << endl;
                     return true;
                 }
@@ -125,6 +133,7 @@ public:
             if (!spot->getAvailability() && spot->getAssignedCar()->getLicensePlate() == licensePlate)
             {
                 spot->getAssignedCar()->exitCar();
+                totalCarAssigned--;
                 spot->removeCar();
                 cout << "Car removed from spot: " << spot->getSpotNumber() << endl;
                 return;
@@ -165,9 +174,14 @@ public:
             cout << "No cars are parked." << endl;
         }
     }
+    static void getTotalAssignedCars()
+    {
+        cout << "Total parked cars: " << totalCarAssigned << endl;
+    }
 };
 
 int Car::tokenNum = 0;
+int ParkingLot::totalCarAssigned = 0;
 
 int main()
 {
@@ -204,6 +218,7 @@ int main()
         }
         case 2:
             parkingLot1.displayAllCars();
+            ParkingLot::getTotalAssignedCars();
             break;
         case 3:
             parkingLot1.displayAvailableSpots();
