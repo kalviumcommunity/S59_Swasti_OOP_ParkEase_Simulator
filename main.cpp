@@ -89,14 +89,14 @@ public:
 class ParkingLot
 {
 private:
-    vector<ParkingSpot> spots;
+    vector<ParkingSpot *> spots;
 
 public:
     ParkingLot(int totalSpots)
     {
         for (int i = 0; i < totalSpots; ++i)
         {
-            spots.push_back(ParkingSpot(i + 1));
+            spots.push_back(new ParkingSpot(i + 1));
         }
     }
 
@@ -104,11 +104,11 @@ public:
     {
         for (auto &spot : spots)
         {
-            if (spot.getAvailability())
+            if (spot->getAvailability())
             {
-                if (spot.assignCar(car))
+                if (spot->assignCar(car))
                 {
-                    cout << "Car parked at spot: " << spot.getSpotNumber() << endl;
+                    cout << "Car parked at spot: " << spot->getSpotNumber() << endl;
                     return true;
                 }
             }
@@ -122,11 +122,11 @@ public:
     {
         for (auto &spot : spots)
         {
-            if (!spot.getAvailability() && spot.getAssignedCar()->getLicensePlate() == licensePlate)
+            if (!spot->getAvailability() && spot->getAssignedCar()->getLicensePlate() == licensePlate)
             {
-                spot.getAssignedCar()->exitCar();
-                spot.removeCar();
-                cout << "Car removed from spot: " << spot.getSpotNumber() << endl;
+                spot->getAssignedCar()->exitCar();
+                spot->removeCar();
+                cout << "Car removed from spot: " << spot->getSpotNumber() << endl;
                 return;
             }
         }
@@ -138,7 +138,7 @@ public:
         int availableSpots = 0;
         for (const auto &spot : spots)
         {
-            if (spot.getAvailability())
+            if (spot->getAvailability())
             {
                 availableSpots++;
             }
@@ -149,19 +149,20 @@ public:
     void displayAllCars() const
     {
         cout << "Currently parked cars:" << endl;
-        bool isParked=false;
+        bool isParked = false;
         for (const auto &spot : spots)
         {
-            if (!spot.getAvailability())
+            if (!spot->getAvailability())
             {
-                spot.getAssignedCar()->displayDetails();
-                cout << "Assigned to spot: " << spot.getSpotNumber() << endl;
+                spot->getAssignedCar()->displayDetails();
+                cout << "Assigned to spot: " << spot->getSpotNumber() << endl;
                 cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-                isParked=true;
+                isParked = true;
             }
         }
-        if(!isParked){
-            cout<<"No cars are parked."<<endl;
+        if (!isParked)
+        {
+            cout << "No cars are parked." << endl;
         }
     }
 };
