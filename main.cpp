@@ -20,10 +20,16 @@ private:
     static int tokenNum;
 
 public:
-// public methods
-    // Constructors
+    // public methods
+    // Default and Parameterized Constructors
     Car() : licensePlate(""), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
     Car(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
+
+    // Destructor
+    ~Car()
+    {
+        cout << "Destructor called for Car with License Plate: " << licensePlate << endl;
+    }
 
     // Accessors(Provide read-only access to private data)
     string getLicensePlate() const { return licensePlate; }
@@ -76,6 +82,20 @@ public:
 //public methods
     // Constructor
     ParkingSpot(int number) : isAvailable(true), assignedCar(nullptr), spotNumber(number) {}
+
+    // Destructor
+    ~ParkingSpot()
+    {
+        if (assignedCar)
+        {
+            cout << "Destructor called for ParkingSpot " << spotNumber << " with assigned car: " << assignedCar->getLicensePlate() << endl;
+            delete assignedCar;
+        }
+        else
+        {
+            cout << "Destructor called for ParkingSpot " << spotNumber << " with no car assigned." << endl;
+        }
+    }
 
     // Accessors(Provide read-only access to private data)
     bool getAvailability() const { return isAvailable; }
