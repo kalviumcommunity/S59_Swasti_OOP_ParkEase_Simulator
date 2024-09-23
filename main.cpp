@@ -19,14 +19,23 @@ private:
     static int tokenNum;
 
 public:
-    Car() : licensePlate(""), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {};
-    Car(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {};
+    // Constructors
+    Car() : licensePlate(""), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
+    Car(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
 
-    int getTokenNum()
-    {
-        return token;
-    }
+    // Accessors
+    string getLicensePlate() const { return licensePlate; }
+    system_clock::time_point getEntryTime() const { return entryTime; }
+    int getTokenNum() const { return token; }
+    system_clock::time_point getExitTime() const { return exitTime; }
+    bool isExited() const { return hasExited; }
 
+    // Mutators
+    void setLicensePlate(const string &plate) { licensePlate = plate; }
+    void setExitTime(system_clock::time_point time) { exitTime = time; }
+    void setHasExited(bool status) { hasExited = status; }
+
+    // Other Methods
     void displayDetails() const
     {
         time_t entryTimeT = system_clock::to_time_t(entryTime);
@@ -49,10 +58,9 @@ public:
             cout << "Car with " << this->licensePlate << " has already exited." << endl;
         }
     }
-
-    string getLicensePlate() const { return licensePlate; }
-    bool isExited() const { return hasExited; }
 };
+
+int Car::tokenNum = 0;
 
 class ParkingSpot
 {
@@ -62,8 +70,19 @@ private:
     int spotNumber;
 
 public:
+    // Constructor
     ParkingSpot(int number) : isAvailable(true), assignedCar(nullptr), spotNumber(number) {}
 
+    // Accessors
+    bool getAvailability() const { return isAvailable; }
+    int getSpotNumber() const { return spotNumber; }
+    Car *getAssignedCar() const { return assignedCar; }
+
+    // Mutators
+    void setAvailability(bool availability) { isAvailable = availability; }
+    void setAssignedCar(Car *car) { assignedCar = car; }
+
+    // Other Methods
     bool assignCar(Car *car)
     {
         if (isAvailable)
@@ -86,10 +105,6 @@ public:
         }
         return false;
     }
-
-    bool getAvailability() const { return isAvailable; }
-    int getSpotNumber() const { return spotNumber; }
-    Car *getAssignedCar() const { return assignedCar; }
 };
 
 class ParkingLot
@@ -174,13 +189,13 @@ public:
             cout << "No cars are parked." << endl;
         }
     }
+
     static void getTotalAssignedCars()
     {
         cout << "Total parked cars: " << totalCarAssigned << endl;
     }
 };
 
-int Car::tokenNum = 0;
 int ParkingLot::totalCarAssigned = 0;
 
 int main()
@@ -190,6 +205,7 @@ int main()
 
     while (running)
     {
+        cout << "\n===== Parking Lot Management System =====" << endl;
         cout << "1. Add a new car" << endl;
         cout << "2. Display all cars" << endl;
         cout << "3. Display the count of available spots." << endl;
