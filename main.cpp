@@ -11,6 +11,7 @@ using namespace std::chrono;
 class Car
 {
 private:
+    // Private data members
     string licensePlate;
     system_clock::time_point entryTime;
     int token;
@@ -19,18 +20,19 @@ private:
     static int tokenNum;
 
 public:
+// public methods
     // Constructors
     Car() : licensePlate(""), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
     Car(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
 
-    // Accessors
+    // Accessors(Provide read-only access to private data)
     string getLicensePlate() const { return licensePlate; }
     system_clock::time_point getEntryTime() const { return entryTime; }
     int getTokenNum() const { return token; }
     system_clock::time_point getExitTime() const { return exitTime; }
     bool isExited() const { return hasExited; }
 
-    // Mutators
+    // Mutators(Provide controlled write access to private data)
     void setLicensePlate(const string &plate) { licensePlate = plate; }
     void setExitTime(system_clock::time_point time) { exitTime = time; }
     void setHasExited(bool status) { hasExited = status; }
@@ -65,20 +67,22 @@ int Car::tokenNum = 0;
 class ParkingSpot
 {
 private:
+//private data members
     bool isAvailable;
     Car *assignedCar;
     int spotNumber;
 
 public:
+//public methods
     // Constructor
     ParkingSpot(int number) : isAvailable(true), assignedCar(nullptr), spotNumber(number) {}
 
-    // Accessors
+    // Accessors(Provide read-only access to private data)
     bool getAvailability() const { return isAvailable; }
     int getSpotNumber() const { return spotNumber; }
     Car *getAssignedCar() const { return assignedCar; }
 
-    // Mutators
+    // Mutators(Provide controlled write access to private data)
     void setAvailability(bool availability) { isAvailable = availability; }
     void setAssignedCar(Car *car) { assignedCar = car; }
 
