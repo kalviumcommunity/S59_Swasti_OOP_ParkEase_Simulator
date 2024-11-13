@@ -29,6 +29,7 @@ public:
     Vehicle(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()) {}
 
     // Pure virtual function making Vehicle an abstract class
+    // This allows us to extend the class with different types of vehicles without modifying the base class.
     virtual void displayDetails() const = 0;
     virtual ~Vehicle() {}
 };
@@ -86,6 +87,8 @@ int Car::tokenNum = 0;
 class ParkingBase
 {
 public:
+    // This is an interface that is open for extension, allowing us to add more parking features
+    // (e.g., VIP parking, Electric vehicle charging spots) without modifying the base class.
     virtual void displayStatus() const = 0;
 };
 
