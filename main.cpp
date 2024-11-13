@@ -8,7 +8,7 @@
 using namespace std;
 using namespace std::chrono;
 
-// Base Class: Vehicle
+// Abstract Base Class: Vehicle
 class Vehicle
 {
 protected:
@@ -17,15 +17,14 @@ protected:
 
 public:
     Vehicle(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()) {}
-    virtual void displayDetails() const
-    {
-        time_t entryTimeT = system_clock::to_time_t(entryTime);
-        cout << "License Plate: " << licensePlate << endl;
-        cout << "Entry Time: " << ctime(&entryTimeT);
-    }
+
+    // Pure virtual function making Vehicle an abstract class
+    virtual void displayDetails() const = 0;
+
+    virtual ~Vehicle() {} // Virtual destructor
 };
 
-// Derived Class (Single Inheritance): Car
+// Derived Class: Car
 class Car : public Vehicle
 {
 private:
@@ -71,7 +70,9 @@ public:
     // Overridden method to display car details including token number
     void displayDetails() const override
     {
-        Vehicle::displayDetails();
+        time_t entryTimeT = system_clock::to_time_t(entryTime);
+        cout << "License Plate: " << licensePlate << endl;
+        cout << "Entry Time: " << ctime(&entryTimeT);
         cout << "Token Number: " << token << endl;
     }
 };
@@ -85,7 +86,7 @@ public:
     virtual void displayStatus() const = 0; // Pure virtual function for displaying status
 };
 
-// Derived Class (Hierarchical Inheritance): ParkingSpot
+// Derived Class: ParkingSpot
 class ParkingSpot : public ParkingBase
 {
 private:
@@ -94,10 +95,7 @@ private:
     int spotNumber;
 
 public:
-    // Constructor to initialize ParkingSpot
     ParkingSpot(int number) : isAvailable(true), assignedCar(nullptr), spotNumber(number) {}
-
-    // Destructor to clean up dynamically allocated Car object
     ~ParkingSpot()
     {
         if (assignedCar)
@@ -110,7 +108,6 @@ public:
     int getSpotNumber() const { return spotNumber; }
     Car *getAssignedCar() const { return assignedCar; }
 
-    // Method to assign a car to the spot if available
     bool assignCar(Car *car)
     {
         if (isAvailable)
@@ -122,7 +119,6 @@ public:
         return false;
     }
 
-    // Method to remove the car from the spot
     bool removeCar()
     {
         if (!isAvailable)
@@ -135,14 +131,13 @@ public:
         return false;
     }
 
-    // Method to display spot status
     void displayStatus() const override
     {
         cout << "Spot Number: " << spotNumber << ", Availability: " << (isAvailable ? "Yes" : "No") << endl;
     }
 };
 
-// Derived Class (Hierarchical Inheritance): ParkingLot
+// Derived Class: ParkingLot
 class ParkingLot : public ParkingBase
 {
 private:
@@ -150,7 +145,6 @@ private:
     static int totalCarAssigned;
 
 public:
-    // Constructor to create specified number of ParkingSpot objects
     ParkingLot(int totalSpots)
     {
         for (int i = 0; i < totalSpots; ++i)
@@ -159,7 +153,6 @@ public:
         }
     }
 
-    // Destructor to clean up dynamically allocated ParkingSpot objects
     ~ParkingLot()
     {
         for (auto &spot : spots)
@@ -168,7 +161,6 @@ public:
         }
     }
 
-    // Method to park a car in the first available spot
     bool parkCar(Car *car)
     {
         for (auto &spot : spots)
@@ -188,7 +180,6 @@ public:
         return false;
     }
 
-    // Method to remove a car from the lot based on license plate
     void removeCar(const string &licensePlate)
     {
         for (auto &spot : spots)
@@ -205,7 +196,6 @@ public:
         cout << "Car with license plate " << licensePlate << " not found." << endl;
     }
 
-    // Method to display the number of available spots
     void displayAvailableSpots() const
     {
         int availableSpots = 0;
@@ -219,7 +209,6 @@ public:
         cout << "Total Available Spots: " << availableSpots << endl;
     }
 
-    // Method to display all parked cars
     void displayAllCars() const
     {
         cout << "Currently parked cars:" << endl;
@@ -239,13 +228,11 @@ public:
         }
     }
 
-    // Static method to display the total number of assigned cars
     static void getTotalAssignedCars()
     {
         cout << "Total parked cars: " << totalCarAssigned << endl;
     }
 
-    // Method to display the status of all parking spots
     void displayStatus() const override
     {
         cout << "ParkingLot Status:" << endl;
@@ -271,7 +258,7 @@ int main()
         cout << "3. Display the count of available spots." << endl;
         cout << "4. Exit the car" << endl;
         cout << "5. Exit the terminal" << endl;
-        
+
         cout << "Choose an option: ";
 
         int option;
