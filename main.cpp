@@ -38,6 +38,9 @@ public:
     // Constructor for Car, initializing base class and unique members
     Car(string licensePlate) : Vehicle(licensePlate), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
 
+    // Overloaded Constructor with a custom token number
+    Car(string licensePlate, int customToken) : Vehicle(licensePlate), token(customToken), exitTime(system_clock::time_point()), hasExited(false) {}
+
     // Destructor to display message when Car object is destroyed
     ~Car()
     {
@@ -282,7 +285,16 @@ int main()
             cout << "Enter the car's license plate: ";
             getline(cin, licensePlate);
 
-            Car *enteredCar = new Car(licensePlate);
+            Car *enteredCar;
+            if (licensePlate.length() > 5)
+            {
+                enteredCar = new Car(licensePlate, 999); // Using overloaded constructor
+            }
+            else
+            {
+                enteredCar = new Car(licensePlate); // Using default constructor
+            }
+
             if (parkingLot1.parkCar(enteredCar))
             {
                 cout << "Car added." << endl;
