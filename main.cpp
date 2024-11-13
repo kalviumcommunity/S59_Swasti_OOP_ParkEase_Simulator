@@ -28,9 +28,7 @@ protected:
 public:
     Vehicle(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()) {}
 
-    // Pure virtual function making Vehicle an abstract class
-    // This allows us to extend the class with different types of vehicles without modifying the base class.
-    virtual void displayDetails() const = 0;
+    virtual void displayDetails() const = 0; // Pure virtual function for displaying details
     virtual ~Vehicle() {}
 };
 
@@ -83,12 +81,10 @@ public:
 
 int Car::tokenNum = 0;
 
-// Base Class for Hierarchical Inheritance: ParkingBase
+// Parking Base Class to demonstrate LSP
 class ParkingBase
 {
 public:
-    // This is an interface that is open for extension, allowing us to add more parking features
-    // (e.g., VIP parking, Electric vehicle charging spots) without modifying the base class.
     virtual void displayStatus() const = 0;
 };
 
@@ -97,41 +93,34 @@ class ParkingSpot : public ParkingBase
 {
 private:
     bool isAvailable;
-    Car *assignedCar;
+    Vehicle *assignedVehicle; // Polymorphism - We are assigning any vehicle, not just Car.
     int spotNumber;
 
 public:
-    ParkingSpot(int number) : isAvailable(true), assignedCar(nullptr), spotNumber(number) {}
-    ~ParkingSpot()
-    {
-        if (assignedCar)
-        {
-            delete assignedCar;
-        }
-    }
+    ParkingSpot(int number) : isAvailable(true), assignedVehicle(nullptr), spotNumber(number) {}
 
     bool getAvailability() const { return isAvailable; }
     int getSpotNumber() const { return spotNumber; }
-    Car *getAssignedCar() const { return assignedCar; }
+    Vehicle *getAssignedVehicle() const { return assignedVehicle; }
 
-    bool assignCar(Car *car)
+    bool assignVehicle(Vehicle *vehicle) // Using Vehicle pointer to accept any derived class (Car, Truck, etc.)
     {
         if (isAvailable)
         {
             isAvailable = false;
-            assignedCar = car;
+            assignedVehicle = vehicle;
             return true;
         }
         return false;
     }
 
-    bool removeCar()
+    bool removeVehicle()
     {
         if (!isAvailable)
         {
             isAvailable = true;
-            delete assignedCar;
-            assignedCar = nullptr;
+            delete assignedVehicle;
+            assignedVehicle = nullptr;
             return true;
         }
         return false;
@@ -143,12 +132,12 @@ public:
     }
 };
 
-// Derived Class: ParkingLot
+// ParkingLot class handling multiple spots
 class ParkingLot : public ParkingBase
 {
 private:
     vector<ParkingSpot *> spots;
-    static int totalCarAssigned;
+    static int totalVehicleAssigned;
 
 public:
     ParkingLot(int totalSpots)
@@ -167,39 +156,39 @@ public:
         }
     }
 
-    bool parkCar(Car *car)
+    bool parkVehicle(Vehicle *vehicle)
     {
         for (auto &spot : spots)
         {
             if (spot->getAvailability())
             {
-                if (spot->assignCar(car))
+                if (spot->assignVehicle(vehicle))
                 {
-                    totalCarAssigned++;
-                    Logger::log("Car parked at spot: " + to_string(spot->getSpotNumber()));
+                    totalVehicleAssigned++;
+                    Logger::log("Vehicle parked at spot: " + to_string(spot->getSpotNumber()));
                     return true;
                 }
             }
         }
         Logger::log("No spots are available.");
-        delete car;
+        delete vehicle;
         return false;
     }
 
-    void removeCar(const string &licensePlate)
+    void removeVehicle(const string &licensePlate)
     {
         for (auto &spot : spots)
         {
-            if (!spot->getAvailability() && spot->getAssignedCar()->licensePlate == licensePlate)
+            if (!spot->getAvailability() && spot->getAssignedVehicle()->licensePlate == licensePlate)
             {
-                spot->getAssignedCar()->exitCar();
-                totalCarAssigned--;
-                spot->removeCar();
-                Logger::log("Car removed from spot: " + to_string(spot->getSpotNumber()));
+                spot->getAssignedVehicle()->displayDetails();
+                spot->removeVehicle();
+                totalVehicleAssigned--;
+                Logger::log("Vehicle removed from spot: " + to_string(spot->getSpotNumber()));
                 return;
             }
         }
-        Logger::log("Car with license plate " + licensePlate + " not found.");
+        Logger::log("Vehicle with license plate " + licensePlate + " not found.");
     }
 
     void displayAvailableSpots() const
@@ -215,28 +204,28 @@ public:
         Logger::log("Total Available Spots: " + to_string(availableSpots));
     }
 
-    void displayAllCars() const
+    void displayAllVehicles() const
     {
-        Logger::log("Currently parked cars:");
+        Logger::log("Currently parked vehicles:");
         bool isParked = false;
         for (const auto &spot : spots)
         {
             if (!spot->getAvailability())
             {
-                spot->getAssignedCar()->displayDetails();
+                spot->getAssignedVehicle()->displayDetails();
                 Logger::log("Assigned to spot: " + to_string(spot->getSpotNumber()));
                 isParked = true;
             }
         }
         if (!isParked)
         {
-            Logger::log("No cars are parked.");
+            Logger::log("No vehicles are parked.");
         }
     }
 
-    static void getTotalAssignedCars()
+    static void getTotalAssignedVehicles()
     {
-        Logger::log("Total parked cars: " + to_string(totalCarAssigned));
+        Logger::log("Total parked vehicles: " + to_string(totalVehicleAssigned));
     }
 
     void displayStatus() const override
@@ -249,7 +238,7 @@ public:
     }
 };
 
-int ParkingLot::totalCarAssigned = 0;
+int ParkingLot::totalVehicleAssigned = 0;
 
 int main()
 {
@@ -259,10 +248,10 @@ int main()
     while (running)
     {
         cout << "\n===== Parking Lot Management System =====" << endl;
-        cout << "1. Add a new car" << endl;
-        cout << "2. Display all cars" << endl;
+        cout << "1. Add a new vehicle" << endl;
+        cout << "2. Display all vehicles" << endl;
         cout << "3. Display the count of available spots." << endl;
-        cout << "4. Exit the car" << endl;
+        cout << "4. Exit the vehicle" << endl;
         cout << "5. Exit the terminal" << endl;
 
         cout << "Choose an option: ";
@@ -276,28 +265,28 @@ int main()
         case 1:
         {
             string licensePlate;
-            cout << "Enter the car's license plate: ";
+            cout << "Enter the vehicle's license plate: ";
             getline(cin, licensePlate);
 
-            Car *enteredCar;
+            Vehicle *enteredVehicle;
             if (licensePlate.length() > 5)
             {
-                enteredCar = new Car(licensePlate, 999); // Using overloaded constructor
+                enteredVehicle = new Car(licensePlate); // Can easily substitute Car with other Vehicle types
             }
             else
             {
-                enteredCar = new Car(licensePlate); // Using default constructor
+                enteredVehicle = new Car(licensePlate); // Can easily be replaced with other vehicle types
             }
 
-            if (parkingLot1.parkCar(enteredCar))
+            if (parkingLot1.parkVehicle(enteredVehicle))
             {
-                Logger::log("Car added.");
+                Logger::log("Vehicle added.");
             }
             break;
         }
         case 2:
-            parkingLot1.displayAllCars();
-            ParkingLot::getTotalAssignedCars();
+            parkingLot1.displayAllVehicles();
+            ParkingLot::getTotalAssignedVehicles();
             break;
         case 3:
             parkingLot1.displayAvailableSpots();
@@ -305,10 +294,10 @@ int main()
         case 4:
         {
             string licensePl;
-            cout << "Enter the Car License Plate number: ";
+            cout << "Enter the Vehicle License Plate number: ";
             getline(cin, licensePl);
 
-            parkingLot1.removeCar(licensePl);
+            parkingLot1.removeVehicle(licensePl);
             break;
         }
         case 5:
