@@ -271,6 +271,7 @@ int main()
         cout << "3. Display the count of available spots." << endl;
         cout << "4. Exit the car" << endl;
         cout << "5. Exit the terminal" << endl;
+        
         cout << "Choose an option: ";
 
         int option;
