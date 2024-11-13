@@ -8,105 +8,106 @@
 using namespace std;
 using namespace std::chrono;
 
-class Car
+// Base Class: Vehicle
+class Vehicle
 {
-private:
-    // Private data members
+protected:
     string licensePlate;
     system_clock::time_point entryTime;
+
+public:
+    Vehicle(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()) {}
+    virtual void displayDetails() const
+    {
+        time_t entryTimeT = system_clock::to_time_t(entryTime);
+        cout << "License Plate: " << licensePlate << endl;
+        cout << "Entry Time: " << ctime(&entryTimeT);
+    }
+};
+
+// Derived Class (Single Inheritance): Car
+class Car : public Vehicle
+{
+private:
     int token;
     system_clock::time_point exitTime;
     bool hasExited;
     static int tokenNum;
 
 public:
-    // public methods
-    // Default and Parameterized Constructors
-    Car() : licensePlate(""), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
-    Car(string licensePlate) : licensePlate(licensePlate), entryTime(system_clock::now()), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
+    // Constructor for Car, initializing base class and unique members
+    Car(string licensePlate) : Vehicle(licensePlate), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
 
-    // Destructor
+    // Destructor to display message when Car object is destroyed
     ~Car()
     {
         cout << "Destructor called for Car with License Plate: " << licensePlate << endl;
     }
 
-    // Accessors(Provide read-only access to private data)
-    string getLicensePlate() const { return licensePlate; }
-    system_clock::time_point getEntryTime() const { return entryTime; }
     int getTokenNum() const { return token; }
-    system_clock::time_point getExitTime() const { return exitTime; }
     bool isExited() const { return hasExited; }
-
-    // Mutators(Provide controlled write access to private data)
-    void setLicensePlate(const string &plate) { licensePlate = plate; }
     void setExitTime(system_clock::time_point time) { exitTime = time; }
     void setHasExited(bool status) { hasExited = status; }
 
-    // Other Methods
-    void displayDetails() const
-    {
-        time_t entryTimeT = system_clock::to_time_t(entryTime);
-        cout << "License Plate: " << this->licensePlate << endl;
-        cout << "Entry Time: " << ctime(&entryTimeT);
-        cout << "Token Number: " << this->token << endl;
-    }
-
+    // Method to handle car exit and record exit time
     void exitCar()
     {
-        if (!this->hasExited)
+        if (!hasExited)
         {
-            this->exitTime = system_clock::now();
-            time_t exitTimeT = system_clock::to_time_t(this->exitTime);
-            cout << "Car with " << this->licensePlate << " exited at " << ctime(&exitTimeT) << endl;
-            this->hasExited = true;
+            exitTime = system_clock::now();
+            time_t exitTimeT = system_clock::to_time_t(exitTime);
+            cout << "Car with " << licensePlate << " exited at " << ctime(&exitTimeT) << endl;
+            hasExited = true;
         }
         else
         {
-            cout << "Car with " << this->licensePlate << " has already exited." << endl;
+            cout << "Car with " << licensePlate << " has already exited." << endl;
         }
+    }
+
+    // Overridden method to display car details including token number
+    void displayDetails() const override
+    {
+        Vehicle::displayDetails();
+        cout << "Token Number: " << token << endl;
     }
 };
 
-int Car::tokenNum = 0;
+int Car::tokenNum = 0; // Static member initialization
 
-class ParkingSpot
+// Base Class for Hierarchical Inheritance: ParkingBase
+class ParkingBase
+{
+public:
+    virtual void displayStatus() const = 0; // Pure virtual function for displaying status
+};
+
+// Derived Class (Hierarchical Inheritance): ParkingSpot
+class ParkingSpot : public ParkingBase
 {
 private:
-//private data members
     bool isAvailable;
     Car *assignedCar;
     int spotNumber;
 
 public:
-//public methods
-    // Constructor
+    // Constructor to initialize ParkingSpot
     ParkingSpot(int number) : isAvailable(true), assignedCar(nullptr), spotNumber(number) {}
 
-    // Destructor
+    // Destructor to clean up dynamically allocated Car object
     ~ParkingSpot()
     {
         if (assignedCar)
         {
-            cout << "Destructor called for ParkingSpot " << spotNumber << " with assigned car: " << assignedCar->getLicensePlate() << endl;
             delete assignedCar;
-        }
-        else
-        {
-            cout << "Destructor called for ParkingSpot " << spotNumber << " with no car assigned." << endl;
         }
     }
 
-    // Accessors(Provide read-only access to private data)
     bool getAvailability() const { return isAvailable; }
     int getSpotNumber() const { return spotNumber; }
     Car *getAssignedCar() const { return assignedCar; }
 
-    // Mutators(Provide controlled write access to private data)
-    void setAvailability(bool availability) { isAvailable = availability; }
-    void setAssignedCar(Car *car) { assignedCar = car; }
-
-    // Other Methods
+    // Method to assign a car to the spot if available
     bool assignCar(Car *car)
     {
         if (isAvailable)
@@ -118,6 +119,7 @@ public:
         return false;
     }
 
+    // Method to remove the car from the spot
     bool removeCar()
     {
         if (!isAvailable)
@@ -129,15 +131,23 @@ public:
         }
         return false;
     }
+
+    // Method to display spot status
+    void displayStatus() const override
+    {
+        cout << "Spot Number: " << spotNumber << ", Availability: " << (isAvailable ? "Yes" : "No") << endl;
+    }
 };
 
-class ParkingLot
+// Derived Class (Hierarchical Inheritance): ParkingLot
+class ParkingLot : public ParkingBase
 {
 private:
     vector<ParkingSpot *> spots;
     static int totalCarAssigned;
 
 public:
+    // Constructor to create specified number of ParkingSpot objects
     ParkingLot(int totalSpots)
     {
         for (int i = 0; i < totalSpots; ++i)
@@ -146,6 +156,16 @@ public:
         }
     }
 
+    // Destructor to clean up dynamically allocated ParkingSpot objects
+    ~ParkingLot()
+    {
+        for (auto &spot : spots)
+        {
+            delete spot;
+        }
+    }
+
+    // Method to park a car in the first available spot
     bool parkCar(Car *car)
     {
         for (auto &spot : spots)
@@ -165,11 +185,12 @@ public:
         return false;
     }
 
+    // Method to remove a car from the lot based on license plate
     void removeCar(const string &licensePlate)
     {
         for (auto &spot : spots)
         {
-            if (!spot->getAvailability() && spot->getAssignedCar()->getLicensePlate() == licensePlate)
+            if (!spot->getAvailability() && spot->getAssignedCar()->licensePlate == licensePlate)
             {
                 spot->getAssignedCar()->exitCar();
                 totalCarAssigned--;
@@ -181,6 +202,7 @@ public:
         cout << "Car with license plate " << licensePlate << " not found." << endl;
     }
 
+    // Method to display the number of available spots
     void displayAvailableSpots() const
     {
         int availableSpots = 0;
@@ -194,6 +216,7 @@ public:
         cout << "Total Available Spots: " << availableSpots << endl;
     }
 
+    // Method to display all parked cars
     void displayAllCars() const
     {
         cout << "Currently parked cars:" << endl;
@@ -204,7 +227,6 @@ public:
             {
                 spot->getAssignedCar()->displayDetails();
                 cout << "Assigned to spot: " << spot->getSpotNumber() << endl;
-                cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
                 isParked = true;
             }
         }
@@ -214,9 +236,20 @@ public:
         }
     }
 
+    // Static method to display the total number of assigned cars
     static void getTotalAssignedCars()
     {
         cout << "Total parked cars: " << totalCarAssigned << endl;
+    }
+
+    // Method to display the status of all parking spots
+    void displayStatus() const override
+    {
+        cout << "ParkingLot Status:" << endl;
+        for (const auto &spot : spots)
+        {
+            spot->displayStatus();
+        }
     }
 };
 
