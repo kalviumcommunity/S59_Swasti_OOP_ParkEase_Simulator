@@ -8,6 +8,16 @@
 using namespace std;
 using namespace std::chrono;
 
+// Logger Class: Handles all logging and output operations
+class Logger
+{
+public:
+    static void log(const string &message)
+    {
+        cout << message << endl;
+    }
+};
+
 // Abstract Base Class: Vehicle
 class Vehicle
 {
@@ -20,8 +30,7 @@ public:
 
     // Pure virtual function making Vehicle an abstract class
     virtual void displayDetails() const = 0;
-
-    virtual ~Vehicle() {} // Virtual destructor
+    virtual ~Vehicle() {}
 };
 
 // Derived Class: Car
@@ -34,16 +43,12 @@ private:
     static int tokenNum;
 
 public:
-    // Constructor for Car, initializing base class and unique members
     Car(string licensePlate) : Vehicle(licensePlate), token(tokenNum++), exitTime(system_clock::time_point()), hasExited(false) {}
-
-    // Overloaded Constructor with a custom token number
     Car(string licensePlate, int customToken) : Vehicle(licensePlate), token(customToken), exitTime(system_clock::time_point()), hasExited(false) {}
 
-    // Destructor to display message when Car object is destroyed
     ~Car()
     {
-        cout << "Destructor called for Car with License Plate: " << licensePlate << endl;
+        Logger::log("Destructor called for Car with License Plate: " + licensePlate);
     }
 
     int getTokenNum() const { return token; }
@@ -51,39 +56,37 @@ public:
     void setExitTime(system_clock::time_point time) { exitTime = time; }
     void setHasExited(bool status) { hasExited = status; }
 
-    // Method to handle car exit and record exit time
     void exitCar()
     {
         if (!hasExited)
         {
             exitTime = system_clock::now();
             time_t exitTimeT = system_clock::to_time_t(exitTime);
-            cout << "Car with " << licensePlate << " exited at " << ctime(&exitTimeT) << endl;
+            Logger::log("Car with " + licensePlate + " exited at " + string(ctime(&exitTimeT)));
             hasExited = true;
         }
         else
         {
-            cout << "Car with " << licensePlate << " has already exited." << endl;
+            Logger::log("Car with " + licensePlate + " has already exited.");
         }
     }
 
-    // Overridden method to display car details including token number
     void displayDetails() const override
     {
         time_t entryTimeT = system_clock::to_time_t(entryTime);
-        cout << "License Plate: " << licensePlate << endl;
-        cout << "Entry Time: " << ctime(&entryTimeT);
-        cout << "Token Number: " << token << endl;
+        Logger::log("License Plate: " + licensePlate);
+        Logger::log("Entry Time: " + string(ctime(&entryTimeT)));
+        Logger::log("Token Number: " + to_string(token));
     }
 };
 
-int Car::tokenNum = 0; // Static member initialization
+int Car::tokenNum = 0;
 
 // Base Class for Hierarchical Inheritance: ParkingBase
 class ParkingBase
 {
 public:
-    virtual void displayStatus() const = 0; // Pure virtual function for displaying status
+    virtual void displayStatus() const = 0;
 };
 
 // Derived Class: ParkingSpot
@@ -133,7 +136,7 @@ public:
 
     void displayStatus() const override
     {
-        cout << "Spot Number: " << spotNumber << ", Availability: " << (isAvailable ? "Yes" : "No") << endl;
+        Logger::log("Spot Number: " + to_string(spotNumber) + ", Availability: " + (isAvailable ? "Yes" : "No"));
     }
 };
 
@@ -170,12 +173,12 @@ public:
                 if (spot->assignCar(car))
                 {
                     totalCarAssigned++;
-                    cout << "Car parked at spot: " << spot->getSpotNumber() << endl;
+                    Logger::log("Car parked at spot: " + to_string(spot->getSpotNumber()));
                     return true;
                 }
             }
         }
-        cout << "No spots are available." << endl;
+        Logger::log("No spots are available.");
         delete car;
         return false;
     }
@@ -189,11 +192,11 @@ public:
                 spot->getAssignedCar()->exitCar();
                 totalCarAssigned--;
                 spot->removeCar();
-                cout << "Car removed from spot: " << spot->getSpotNumber() << endl;
+                Logger::log("Car removed from spot: " + to_string(spot->getSpotNumber()));
                 return;
             }
         }
-        cout << "Car with license plate " << licensePlate << " not found." << endl;
+        Logger::log("Car with license plate " + licensePlate + " not found.");
     }
 
     void displayAvailableSpots() const
@@ -206,36 +209,36 @@ public:
                 availableSpots++;
             }
         }
-        cout << "Total Available Spots: " << availableSpots << endl;
+        Logger::log("Total Available Spots: " + to_string(availableSpots));
     }
 
     void displayAllCars() const
     {
-        cout << "Currently parked cars:" << endl;
+        Logger::log("Currently parked cars:");
         bool isParked = false;
         for (const auto &spot : spots)
         {
             if (!spot->getAvailability())
             {
                 spot->getAssignedCar()->displayDetails();
-                cout << "Assigned to spot: " << spot->getSpotNumber() << endl;
+                Logger::log("Assigned to spot: " + to_string(spot->getSpotNumber()));
                 isParked = true;
             }
         }
         if (!isParked)
         {
-            cout << "No cars are parked." << endl;
+            Logger::log("No cars are parked.");
         }
     }
 
     static void getTotalAssignedCars()
     {
-        cout << "Total parked cars: " << totalCarAssigned << endl;
+        Logger::log("Total parked cars: " + to_string(totalCarAssigned));
     }
 
     void displayStatus() const override
     {
-        cout << "ParkingLot Status:" << endl;
+        Logger::log("ParkingLot Status:");
         for (const auto &spot : spots)
         {
             spot->displayStatus();
@@ -285,7 +288,7 @@ int main()
 
             if (parkingLot1.parkCar(enteredCar))
             {
-                cout << "Car added." << endl;
+                Logger::log("Car added.");
             }
             break;
         }
@@ -307,10 +310,10 @@ int main()
         }
         case 5:
             running = false;
-            cout << "Exiting the system." << endl;
+            Logger::log("Exiting...");
             break;
         default:
-            cout << "Invalid option. Please try again." << endl;
+            Logger::log("Invalid option.");
             break;
         }
     }
